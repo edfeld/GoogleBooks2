@@ -1,95 +1,122 @@
 import React, { Component } from "react";
-import NavBar from "../components/NavBar"
+import Jumbotron from "../components/Jumbotron";
+import Card from "../components/Card";
+import Form from "../components/Form";
+import Book from "../components/Book";
+import Footer from "../components/Footer"
 import API from "../utils/API";
+import { Col, Row, Container } from "../components/Grid";
+import { List } from "../components/List"
 
-// function Jumbotron({ children }) {
-//     return <div className="jumbotron mt-4">{children}</div>;
-//   }
 
 class Home extends Component {
-    constructor(props) {
-        super(props);
-        this.state = { 
-            value: '',
-            books: [],
-            q: "",
-            message: "Search for books to begin"
+    state = { 
+        value: '',
+        books: [],
+        q: "",
+        message: "Search For A Book To Begin"
 
-        };
+    };
 
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-    }
-
-    getBooks(q) {
-        alert("getBooks called with param: " + q);
-        API.getBooks(q).then( googBooks => 
+    getBooks() {
+        // alert("getBooks called with param: " + q);
+        API.getBooks(this.state.q)
+        .then( googBooks => 
         this.setState({ books: googBooks.data }))
         .catch(
             this.setState({
                 books: [],
                 message: "No Books Found, Try a different query."
             })
-            
         );
-        // Here I am.  2019/06/22
 
     }
 
-    handleChange(event) {
-        this.setState({value: event.target.value});
-        console.log(this.state.value);
-    }
+    handleInputChange = event => {
+        const { name, value } = event.target;
+        this.setState({
+            [name]: value
+        });
+    };
 
-    handleSubmit(event) {
-        // alert("A Book Name was submitted: " + this.state.value);
-        this.getBooks(this.state.value)
+    handleFormSubmit = event => {
         event.preventDefault();
-    }
+        this.getBooks()
+    };
 
+    handleBookSave = id => {
+        const book = this.state.books.find(book => book.id === id)
+        // alert("my Id: ", book.id);
+        // console.log("Authors: ", book.volumeInfo.authors);
+        API.saveBook({
+            googleId: book.id,
+            title: book.volumeInfo.title,
+            subtitle: book.volumeInfo.subtitle,
+            link: book.volumeInfo.infoLink,
+            authors: book.volumeInfo.authors,
+            description: book.volumeInfo.description,
+            image: book.volumeInfo.imageLinks.thumbnail
+        }).then(()=> this.getBooks());
+    };
+    
     render() {
         return (
-            <div className="container">
-                <NavBar />
-                <div className="jumbotron jumbotron-fluid">
-                    <div className="container">
-                        <h1 className="display-4">(React) Google Books Search</h1>
-                        <p className="lead"><strong>Search for and Save Books of interest</strong></p>
-                        {/* <hr className="my-2"></hr> */}
-                        {/* <p>More info</p> */}
-                        {/* <p className="lead">
-                            <a className="btn btn-primary btn-lg" href="Jumbo action link" role="button">Jumbo action name</a>
-                        </p> */}
-                    </div>
-                </div>
-                <div className="search-div bg-light my-5 p-4">
-                    <p className="text-left">Book Search</p>
-                    {/* <form onSubmit={this.handleSubmit}>
-                        <label>
-                        Name:
-                        <input type="text" value={this.state.value} onChange={this.handleChange} />
-                        </label>
-                        <input type="submit" value="Submit" />
-                    </form> */}
-                <form onSubmit={this.handleSubmit}>
-                    <label className="book-input">
-                        <input className="book-input" type="text" value={this.state.value} onChange={this.handleChange} />
-                    </label>
-                    <div className="text-right mt-2">
-                         <input className="btn btn-primary btn-sm" type="submit"  value="Submit" /> {/*className="btn btn-primary btn-sm"*/}
-                    </div>
-                    </form>
-                </div>
-                <div className="book-results bg-light my-5 p-4 text-left">
-                    <h3>results</h3>
-                    {this.state.books.map( book => (
-                        <div key={book.id}>{book.volumeInfo.title}</div>
-                    ))}
-                </div>
-            </div>
-        )
+          <Container>
+            <Row>
+              <Col size="md-12">
+                <Jumbotron>
+                  <h1 className="text-center">
+                    <strong>(React) Google Books Search</strong>
+                  </h1>
+                  <h2 className="text-center">Search for and Save Books of Interest.</h2>
+                </Jumbotron>
+              </Col>
+              <Col size="md-12">
+                <Card title="Book Search" icon="far fa-book">
+                  <Form
+                    handleInputChange={this.handleInputChange}
+                    handleFormSubmit={this.handleFormSubmit}
+                    q={this.state.q}
+                  />
+                </Card>
+              </Col>
+            </Row>
+            <Row>
+              <Col size="md-12">
+                <Card title="Results">
+                  {this.state.books.length ? (
+                    <List>
+                      {this.state.books.map(book => (
+                        <Book
+                          key={book.id}
+                          title={book.volumeInfo.title}
+                          subtitle={book.volumeInfo.subtitle}
+                          link={book.volumeInfo.infoLink}
+                          authors={book.volumeInfo.authors.join(", ")}
+                          description={book.volumeInfo.description}
+                          image={book.volumeInfo.imageLinks.thumbnail}
+                          Button={() => (
+                            <button
+                              onClick={() => this.handleBookSave(book.id)}
+                              className="btn btn-primary ml-2"
+                            >
+                              Save
+                            </button>
+                          )}
+                        />
+                      ))}
+                    </List>
+                  ) : (
+                    <h2 className="text-center">{this.state.message}</h2>
+                  )}
+                </Card>
+              </Col>
+            </Row>
+            <Footer />
+          </Container>
+        );
     }
 }
 
 
-  export default Home;
+export default Home;

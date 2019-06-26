@@ -11,7 +11,7 @@ const db = require("../models");
 
 module.exports = {
     findAll: function (req, res) {
-        console.log("req: ", req);
+        // console.log("req: ", req);
         console.log("req.query", req.query);
         const { query: params } = req;
         console.log("params: ", params);

@@ -5,7 +5,6 @@ const db = require("../models");
 
 module.exports = {
     findAll: function (req, res) {
-        console.log("req: ", req);
         console.log("req.query", req.query);
         db.Book.find(req.query)
             .then(dbBook => res.json(dbBook))
@@ -32,11 +31,11 @@ module.exports = {
             .json(err))
     },
     remove: function(req, res) {
-        console.log("Running the remove: ", req.params.id);
+        console.log("running the remove:", req.params);
         db.Book.findById(req.params.id)
-            .then(dbBook => dbBook.remove())
-            .then(dbBook => res.json(dbBook))
-            .catch(err => res.status(422).json(err));
-    }
+          .then(dbBook => dbBook.remove())
+          .then(dbBook => res.json(dbBook))
+          .catch(err => res.status(422).json(err));
+      }
 
 }
